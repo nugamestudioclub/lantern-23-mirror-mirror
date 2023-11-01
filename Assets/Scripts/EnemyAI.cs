@@ -28,8 +28,9 @@ public class EnemyAI : MonoBehaviour
     float fieldOfView = 45f;
     [SerializeField]
     float chaseDistance = 10;
-
     Transform player_pos;
+
+    Transform currentPos;
 
     // Start is called before the first frame update
     void Start()
@@ -100,6 +101,7 @@ public class EnemyAI : MonoBehaviour
     void UpdateChaseState(){
         nextDestination = player.transform.position;
         if((distanceToPlayer > chaseDistance) || (!IsPlayerInClearFOV())){
+            currentPos = gameObject.transform;
             currentState = EnemyStates.Search;
         }
         FaceTarget(nextDestination);
@@ -111,8 +113,9 @@ public class EnemyAI : MonoBehaviour
                 currentState = EnemyStates.Chase; //if we spot the player, start chasing again
         } else {
             if(Vector3.Distance(transform.position, nextDestination) < 2){ //if we reach the location
-                //search the area
-                currentState = EnemyStates.Patrol;
+                if(Scan()){
+                    currentState = EnemyStates.Patrol;
+                }
             }
         }
     }
@@ -122,5 +125,14 @@ public class EnemyAI : MonoBehaviour
         directionToTarget.y = 0;
         Quaternion lookDirection = Quaternion.LookRotation(directionToTarget);
         transform.rotation = Quaternion.Slerp(transform.rotation, lookDirection, 10 * Time.deltaTime);
+    }
+
+    bool Scan(){
+        Vector3 target = transform.eulerAngles + 180f * Vector3.up;
+        transform.rotation = Quaternion.Slerp(transform.rotation, target, 10 * Time.deltaTime);
+        if(transform.rotation == currentPos.rotation){ //definitely need to fix this at some point
+            return true;
+        }
+        return false;
     }
 }
