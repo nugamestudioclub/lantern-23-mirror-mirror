@@ -21,6 +21,7 @@ public class EnemyAI : MonoBehaviour
     Transform enemyEyes;
     [SerializeField]
     GameObject player;
+    float distanceToPlayer;
 
 
     [SerializeField]
@@ -47,6 +48,7 @@ public class EnemyAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
         switch(currentState){
             case EnemyStates.Patrol:
                 UpdatePatrolState();
@@ -82,7 +84,7 @@ public class EnemyAI : MonoBehaviour
         agent.SetDestination(nextDestination);        
     }
 
-    void IsPlayerInClearFOV(){
+    bool IsPlayerInClearFOV(){
         Vector3 directionToPlayer = player.transform.position - enemyEyes.position;
         if(Vector3.Angle(directionToPlayer, enemyEyes.forward) <= fieldOfView){
             RaycastHit hit;
@@ -105,8 +107,14 @@ public class EnemyAI : MonoBehaviour
     }
 
     void UpdateSearchState(){
-        //search the area
-        //after having searched the area, return to patrol
+        if(IsPlayerInClearFOV()){
+                currentState = EnemyStates.Chase; //if we spot the player, start chasing again
+        } else {
+            if(Vector3.Distance(transform.position, nextDestination) < 2){ //if we reach the location
+                //search the area
+                currentState = EnemyStates.Patrol;
+            }
+        }
     }
 
     void FaceTarget(Vector3 target){
