@@ -128,11 +128,13 @@ public class EnemyAI : MonoBehaviour
     }
 
     bool Scan(){
+        /*
         Vector3 target = transform.eulerAngles + 180f * Vector3.up;
         transform.rotation = Quaternion.Slerp(transform.rotation, target, 10 * Time.deltaTime);
         if(transform.rotation == currentPos.rotation){ //definitely need to fix this at some point
             return true;
         }
+        */
         return false;
     }
 }
