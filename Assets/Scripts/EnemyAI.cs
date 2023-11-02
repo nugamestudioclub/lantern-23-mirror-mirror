@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
@@ -64,6 +65,7 @@ public class EnemyAI : MonoBehaviour
     }
 
     void UpdatePatrolState(){
+        Debug.Log("Patrol");
         agent.stoppingDistance = 0;
         agent.speed = 3.5f;
          if(Vector3.Distance(transform.position, nextDestination) < 2){
@@ -99,6 +101,7 @@ public class EnemyAI : MonoBehaviour
     }
 
     void UpdateChaseState(){
+        Debug.Log("Chase");
         nextDestination = player.transform.position;
         if((distanceToPlayer > chaseDistance) || (!IsPlayerInClearFOV())){
             currentPos = gameObject.transform;
@@ -109,6 +112,7 @@ public class EnemyAI : MonoBehaviour
     }
 
     void UpdateSearchState(){
+        Debug.Log("Search");
         if(IsPlayerInClearFOV()){
                 currentState = EnemyStates.Chase; //if we spot the player, start chasing again
         } else {
@@ -128,13 +132,31 @@ public class EnemyAI : MonoBehaviour
     }
 
     bool Scan(){
-        /*
+        
         Vector3 target = transform.eulerAngles + 180f * Vector3.up;
-        transform.rotation = Quaternion.Slerp(transform.rotation, target, 10 * Time.deltaTime);
-        if(transform.rotation == currentPos.rotation){ //definitely need to fix this at some point
+        Quaternion q = Quaternion.Euler(target.x, target.y, target.z);
+        transform.rotation = Quaternion.Slerp(transform.rotation, q, 10 * Time.deltaTime);
+        if(isApproximate(currentPos.rotation, transform.rotation, 0.00001f)){ //definitely need to fix this at some point
             return true;
         }
-        */
         return false;
+    }
+
+    bool isApproximate(Quaternion q1, Quaternion q2, float precision){
+        return Mathf.Abs(Quaternion.Dot(q1, q2)) >= 1 - precision;
+    }
+
+    private void OnDrawGizmos(){
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, chaseDistance);
+
+        Vector3 frontRayPoint = enemyEyes.position + (enemyEyes.forward * chaseDistance);
+        Vector3 leftRayPoint = Quaternion.Euler(0, fieldOfView * 0.5f, 0) * frontRayPoint;
+        Vector3 rightRayPoint = Quaternion.Euler(0, -fieldOfView * 0.5f, 0) * frontRayPoint;
+
+        Debug.DrawLine(enemyEyes.position, frontRayPoint, Color.red);
+        Debug.DrawLine(enemyEyes.position, rightRayPoint, Color.yellow);
+        Debug.DrawLine(enemyEyes.position, leftRayPoint, Color.yellow);
     }
 }
