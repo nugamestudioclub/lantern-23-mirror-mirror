@@ -28,10 +28,12 @@ public class EnemyAI : MonoBehaviour
     [SerializeField]
     float fieldOfView = 45f;
     [SerializeField]
-    float chaseDistance = 10;
+    float chaseDistance = 100;
     Transform player_pos;
 
     Transform currentPos;
+
+    float timeSearching = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -117,10 +119,13 @@ public class EnemyAI : MonoBehaviour
                 currentState = EnemyStates.Chase; //if we spot the player, start chasing again
         } else {
             if(Vector3.Distance(transform.position, nextDestination) < 2){ //if we reach the location
-                if(Scan()){
-                    currentState = EnemyStates.Patrol;
-                }
+                Scan();
             }
+        }
+        timeSearching += Time.deltaTime;
+        if(timeSearching >= 10f){
+            currentState = EnemyStates.Patrol;
+            timeSearching = 0f;
         }
     }
 
@@ -128,15 +133,14 @@ public class EnemyAI : MonoBehaviour
         Vector3 directionToTarget = (target - transform.position).normalized;
         directionToTarget.y = 0;
         Quaternion lookDirection = Quaternion.LookRotation(directionToTarget);
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookDirection, 10 * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookDirection, 3 * Time.deltaTime);
     }
 
     bool Scan(){
-        
-        Vector3 target = transform.eulerAngles + 180f * Vector3.up;
+        Vector3 target = transform.eulerAngles + 10f * Vector3.up;
         Quaternion q = Quaternion.Euler(target.x, target.y, target.z);
-        transform.rotation = Quaternion.Slerp(transform.rotation, q, 10 * Time.deltaTime);
-        if(isApproximate(currentPos.rotation, transform.rotation, 0.00001f)){ //definitely need to fix this at some point
+        transform.rotation = Quaternion.Slerp(transform.rotation, q, 3 * Time.deltaTime);
+        if(isApproximate(currentPos.rotation, transform.rotation, 0.000001f)){ //definitely need to fix this at some point
             return true;
         }
         return false;
