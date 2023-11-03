@@ -961,10 +961,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1097874149996532506, guid: 113fbfcae46eb45e2b2fe0b850a681bc, type: 3}
-      propertyPath: turnSpeed
-      value: 360
-      objectReference: {fileID: 0}
-    - target: {fileID: 1097874149996532506, guid: 113fbfcae46eb45e2b2fe0b850a681bc, type: 3}
       propertyPath: monsterTransform
       value: 
       objectReference: {fileID: 1009093053}

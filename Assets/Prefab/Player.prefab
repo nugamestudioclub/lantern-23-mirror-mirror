@@ -149,6 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 8710217979396267359}
+  monsterTransform: {fileID: 0}
   sensitivity: 1000
   walkSpeed: 5
   sprintSpeed: 10
@@ -156,6 +157,7 @@ MonoBehaviour:
   sprintTime: 5
   sprintRecoveryRate: 1
   exhaustionRecoveryRate: 1
+  turnSpeed: 360
 --- !u!1 &7217644736134585476
 GameObject:
   m_ObjectHideFlags: 0

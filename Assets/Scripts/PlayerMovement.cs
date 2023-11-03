@@ -69,6 +69,7 @@ public class PlayerMovement : MonoBehaviour
         }
         MoveStateUpdate();
         MovePlayer();
+        CheckGameOver();
     }
 
     void MonsterIsVisible() {
@@ -154,5 +155,13 @@ public class PlayerMovement : MonoBehaviour
         velocity = velocity.normalized * moveSpeed;
 
         characterController.Move(velocity * Time.deltaTime);
+    }
+
+    void CheckGameOver() {
+        if (Vector3.Distance(monsterTransform.position, transform.position) < 2f) {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
     }
 }
