@@ -8,6 +8,9 @@ public class PlayerMovement : MonoBehaviour
     private Transform cameraTransform;
 
     [SerializeField]
+    private Transform monsterTransform;
+
+    [SerializeField]
     private float sensitivity;
 
     [SerializeField]
@@ -28,6 +31,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private float exhaustionRecoveryRate;
 
+    [SerializeField]
+    private float turnSpeed;
+
 
     private CharacterController characterController;
 
@@ -37,14 +43,9 @@ public class PlayerMovement : MonoBehaviour
 
     private float sprintTimer;
 
-    enum MoveState{
-        Walk,
-        Sprint,
-        Slow
-    };
+    private bool exhausted;
 
-    private MoveState moveState;
-
+    private bool monsterVisible;
 
     void Start() {
         characterController = GetComponent<CharacterController>();
@@ -54,14 +55,26 @@ public class PlayerMovement : MonoBehaviour
 
         moveSpeed = walkSpeed;
         sprintTimer = sprintTime;
+
+        monsterVisible = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        MonsterIsVisible();
         MouseLook();
+        if (monsterVisible) {
+            EnemyLookAway();
+        }
         MoveStateUpdate();
         MovePlayer();
+    }
+
+    void MonsterIsVisible() {
+        Vector3 monsterDirection = monsterTransform.position - this.gameObject.transform.position;
+        monsterVisible = !Physics.Raycast(transform.position + transform.forward, monsterDirection, monsterDirection.magnitude - 2f);
+        Debug.Log(monsterVisible);
     }
 
     void MouseLook() {
@@ -74,14 +87,42 @@ public class PlayerMovement : MonoBehaviour
 
         cameraTransform.eulerAngles = new Vector3(-xRotation, transform.eulerAngles.y + mouseY, 0f);
         transform.rotation *= Quaternion.Euler(0, mouseX, 0);
+        
+        if (monsterVisible) {
+            Vector3 playerBearing = this.gameObject.transform.forward;
+            Vector3 monsterBearing = Vector3.ProjectOnPlane(monsterTransform.position - this.gameObject.transform.position, Vector3.up);
+            float angleBetween = Vector3.Angle(playerBearing, monsterBearing);
+            if (angleBetween <= 50f) {
+                transform.rotation *= Quaternion.Euler(0, -mouseX, 0);
+            }    
+        }    
+    }
+
+    void EnemyLookAway() {
+        Vector3 playerBearing = this.gameObject.transform.forward;
+        Vector3 monsterBearing = Vector3.ProjectOnPlane(monsterTransform.position - this.gameObject.transform.position, Vector3.up);
+        float angleBetween = Vector3.Angle(playerBearing, monsterBearing);
+        if (angleBetween <= 50f) {
+            float relativeBearing = Vector3.Dot(monsterBearing, this.gameObject.transform.right);
+            if (relativeBearing >= 0f) {
+                transform.rotation *= Quaternion.Euler(0, -turnSpeed * Time.deltaTime, 0);
+            } else {
+                transform.rotation *= Quaternion.Euler(0, turnSpeed * Time.deltaTime, 0);
+            }
+
+            //Vector3 monsterRelation = Vector3.ProjectOnPlane(monsterBearing, this.gameObject.transform.right);
+            //Vector3 monsterRelationDifference = monsterRelation - this.gameObject.transform.right;
+            //Debug.Log(monsterRelationDifference);
+            //transform.rotation *= Quaternion.Euler(0, turnSpeed * Time.deltaTime, 0);
+        }
     }
 
     void MoveStateUpdate() {
-        if (moveState == MoveState.Slow) {
+        if (exhausted) {
             moveSpeed = slowSpeed;
             if (sprintTimer >= sprintTime) {
                 sprintTimer = sprintTime;
-                moveState = MoveState.Walk;
+                exhausted = false;
             } else {
                 sprintTimer += exhaustionRecoveryRate * Time.deltaTime;
             }
@@ -92,7 +133,7 @@ public class PlayerMovement : MonoBehaviour
                     sprintTimer -= Time.deltaTime;
                 } else {
                     sprintTimer = 0f;
-                    moveState = MoveState.Slow;
+                    exhausted = true;
                     moveSpeed = slowSpeed;
                 }
             } else {
